@@ -32,6 +32,7 @@ package comp533;
 
 import comp533.count.TokenCountingMapper;
 import comp533.factory.BarrierImpl;
+import comp533.factory.JoinerImpl;
 import comp533.factory.MapperFactory;
 import comp533.factory.PartitionerFactory;
 import comp533.factory.PartitionerImpl;
@@ -138,7 +139,7 @@ public class MapReduceConfigurationImpl implements MapReduceConfiguration {
 
 	@Override
 	public Class getJoinerClass() {
-		 return null;
+		 return JoinerImpl.class;
 	 }
 
 	@Override
@@ -160,7 +161,7 @@ public class MapReduceConfigurationImpl implements MapReduceConfiguration {
 
 	@Override
 	public Object getJoiner(int aNumThreads) {
-		return null;
+		return new JoinerImpl(aNumThreads);
 	}
 
 	    // --------------------A3--------------------------
@@ -601,6 +602,14 @@ public class RunA2Tests {
 }
 
 //END OF FILE
+//START OF FILE: comp533/factory/Joiner.java
+package comp533.factory;
+
+public interface Joiner {
+
+}
+
+//END OF FILE
 //START OF FILE: comp533/factory/Mapper.java
 package comp533.factory;
 
@@ -611,6 +620,36 @@ import comp533.KeyValue;
 public interface Mapper<K, V> {
 	
 	List<KeyValue<K, V>> map(List<String> strings);
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/JoinerImpl.java
+package comp533.factory;
+
+public class JoinerImpl implements Joiner {
+	private int numThreads;
+	private int count;
+	
+	public JoinerImpl(int numThreads) {
+		this.numThreads = numThreads;
+		this.count = 0;
+	}
+	
+	public synchronized void finished() {
+		count++;
+	}
+	
+	public synchronized void join() {
+		while (count < numThreads) {
+			try {
+				wait();
+			} catch(InterruptedException e) {
+				Thread.currentThread().interrupt();
+				System.err.println("Thread Interrupted");
+			}
+		}
+	}
+
 }
 
 //END OF FILE

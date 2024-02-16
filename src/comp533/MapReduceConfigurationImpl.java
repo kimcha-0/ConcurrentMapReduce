@@ -3,6 +3,7 @@ package comp533;
 
 import comp533.count.TokenCountingMapper;
 import comp533.factory.BarrierImpl;
+import comp533.factory.JoinerImpl;
 import comp533.factory.MapperFactory;
 import comp533.factory.PartitionerFactory;
 import comp533.factory.PartitionerImpl;
@@ -109,7 +110,7 @@ public class MapReduceConfigurationImpl implements MapReduceConfiguration {
 
 	@Override
 	public Class getJoinerClass() {
-		 return null;
+		 return JoinerImpl.class;
 	 }
 
 	@Override
@@ -131,7 +132,7 @@ public class MapReduceConfigurationImpl implements MapReduceConfiguration {
 
 	@Override
 	public Object getJoiner(int aNumThreads) {
-		return null;
+		return new JoinerImpl(aNumThreads);
 	}
 
 	    // --------------------A3--------------------------

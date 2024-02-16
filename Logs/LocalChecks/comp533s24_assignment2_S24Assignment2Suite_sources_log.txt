@@ -880,3 +880,49 @@ public interface Barrier {
 //END OF FILE
 
 //SESSION END
+
+//SESSION START
+7,Fri Feb 16 15:07:07 EST 2024,614
+//START OF FILE: comp533/factory/Joiner.java
+package comp533.factory;
+
+public interface Joiner {
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/JoinerImpl.java
+package comp533.factory;
+
+public class JoinerImpl implements Joiner {
+	private int numThreads;
+	private int count;
+	
+	public JoinerImpl(int numThreads) {
+		this.numThreads = numThreads;
+		this.count = 0;
+	}
+	
+	public synchronized void finished() {
+		count++;
+	}
+	
+	public synchronized void join() {
+		while (count < numThreads) {
+			try {
+				wait();
+			} catch(InterruptedException e) {
+				Thread.currentThread().interrupt();
+				System.err.println("Thread Interrupted");
+			}
+		}
+	}
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/MapReduceConfigurationImpl.java
+=120	+JoinerImpl;%0Aimport comp533.factory.	=2334	+Joi	=1	-1	+erImp	=1	+.c	=1	+ass	=440	+ew JoinerImpl(aN	=1	-2	+mThreads)	=1908
+//END OF FILE
+
+//SESSION END

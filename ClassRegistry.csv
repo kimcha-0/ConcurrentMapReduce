@@ -4,6 +4,8 @@ comp533.mvc.ControllerImpl,ControllerClass
 comp533.mvc.Controller,ControllerClass
 comp533.sum.IntSummingMapper,IntSummingMapperClass
 comp533.factory.Mapper,IntSummingMapperClass
+comp533.factory.JoinerImpl,JoinerClass
+comp533.factory.Joiner,JoinerClass
 comp533.KeyValue,KeyValueClass
 comp533.factory.MapperFactory,MapperFactory
 comp533.mvc.ModelImpl,ModelClass
