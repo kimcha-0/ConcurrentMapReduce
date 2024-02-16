@@ -1,0 +1,882 @@
+
+//SESSION START
+0,Fri Feb 16 13:23:46 EST 2024,15601
+//START OF FILE: comp533/mvc/ModelImpl.java
+package comp533.mvc;
+
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+import java.util.Map;
+
+import comp533.KeyValue;
+import comp533.factory.Mapper;
+import comp533.factory.MapperFactory;
+import comp533.factory.Reducer;
+import comp533.factory.ReducerFactory;
+
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
+public class ModelImpl extends AMapReduceTracer implements Model {
+	private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+	// editable
+	private String inputBuffer;
+	// readonly
+	private Map<String, Integer> _map;
+	private Mapper<String, Integer> mapper;
+	private Reducer<String, Integer> reducer;
+	
+    public ModelImpl() {
+        this._map = new HashMap<String, Integer>();
+        this.mapper = MapperFactory.getMapper();
+        this.reducer = ReducerFactory.getReducer();
+    }
+
+    @Override
+	public String getInputString() {
+		return inputBuffer;
+	}
+	
+    @Override
+	public void setInputString(String newVal) {
+		// fire PropertyChangeEvent
+		String oldVal = inputBuffer;
+		inputBuffer = newVal;
+		propertyChangeSupport.firePropertyChange("InputString", oldVal, newVal);
+		countTokens();
+		propertyChangeSupport.firePropertyChange("Result", null, _map);
+	}
+
+    private void countTokens() {
+    	_map.clear();
+        String[] strings = this.inputBuffer.split(" ");
+        List<String> tokens = Arrays.asList(strings);
+        List<KeyValue<String, Integer>> keyValuePairs = mapper.map(tokens);
+        this._map = reducer.reduce(keyValuePairs);
+    }
+
+    @Override
+	public Map<String, Integer> getMap() {
+		return _map;
+	}
+	
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener listener) {
+		propertyChangeSupport.addPropertyChangeListener(listener);
+	}
+
+	@Override
+    public String toString() {
+        return MODEL;
+    }
+}
+
+
+//END OF FILE
+//START OF FILE: comp533/mvc/Controller.java
+package comp533.mvc;
+
+public interface Controller {
+	void getUserInput();
+	void setUserInput(String newVal);
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/ReducerFactory.java
+package comp533.factory;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+public class ReducerFactory extends AMapReduceTracer {
+	private static Reducer<String, Integer> reducer = new TokenCountingReducer();
+	
+	public ReducerFactory() {}
+	
+	public static Reducer<String, Integer> getReducer() {
+		return reducer;
+	}
+	
+	public static void setReducer(Reducer newReducer) {
+		reducer = newReducer;
+		traceSingletonChange(TokenCountingReducer.class, newReducer);
+	}
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/TokenCountingReducer.java
+package comp533.factory;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+import comp533.KeyValue;
+
+public class TokenCountingReducer extends AMapReduceTracer implements Reducer<String, Integer> {
+
+	public TokenCountingReducer() {}
+	
+	@Override
+	public Map<String, Integer> reduce(List<KeyValue<String, Integer>> keyValues) {
+		Map<String, Integer> map = new HashMap<>();
+		Iterator<KeyValue<String, Integer>> iterator = keyValues.iterator();
+		String key;
+		Integer val;
+
+		while (iterator.hasNext()) {
+			KeyValue<String, Integer> pair = iterator.next();
+			key = pair.getKey();
+			val = pair.getValue();
+			if (map.containsKey(key)) {
+				map.put(key, map.get(key) + val);
+			} else map.put(key, val);
+			
+		}
+		traceReduce(keyValues, map);
+		return map;
+	}
+	
+	@Override
+	public String toString() {
+		return REDUCER;
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/KeyValue.java
+package comp533;
+
+public interface KeyValue<K, V> {
+	K getKey();
+	V getValue();
+	void setValue(V newVal);
+}
+
+//END OF FILE
+//START OF FILE: comp533/Slave.java
+package comp533;
+
+
+public class Slave extends Runnable implements Slave {
+
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/mvc/View.java
+package comp533.mvc;
+
+public interface View {
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/mvc/ControllerImpl.java
+package comp533.mvc;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+import java.util.Scanner;
+
+
+public class ControllerImpl extends AMapReduceTracer implements Controller {
+    private Scanner in;
+    private String currentString;
+    private Model model;
+
+    public ControllerImpl(Model model) {
+        this.in = new Scanner(System.in);
+        this.model = model;
+    }
+
+    @Override
+    public void getUserInput() {
+		traceNumbersPrompt();
+		while (true) {
+			currentString = in.nextLine();
+			if (currentString.equals("quit")) break;
+			model.setInputString(currentString);
+			traceNumbersPrompt();
+		}
+		this.in.close();
+		traceQuit();
+    }
+    
+    @Override
+    public void setUserInput(String val) {
+    	this.currentString = val;
+    }
+    
+    @Override
+    public String toString() {
+    	return CONTROLLER;
+    }
+}
+
+//END OF FILE
+//START OF FILE: comp533/count/TokenCountingMapper.java
+package comp533.count;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import comp533.KeyValue;
+import comp533.KeyValueImpl;
+import comp533.factory.Mapper;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+public class TokenCountingMapper extends AMapReduceTracer implements Mapper<String, Integer> {
+	private static TokenCountingMapper instance;
+	
+	public TokenCountingMapper() {}
+	
+	public static Mapper<String, Integer> getInstance() {
+		if (instance == null) {
+			instance = new TokenCountingMapper();
+		}
+		return instance;
+	}
+	
+	@Override
+	public List<KeyValue<String, Integer>> map(List<String> input) {
+		List<KeyValue<String, Integer>> keys = new ArrayList<>();
+		Iterator<String> iterator = input.iterator();
+		
+		while (iterator.hasNext()) {
+			keys.add(new KeyValueImpl(iterator.next(), 1));
+		}
+		traceMap(input, keys);
+		return keys;
+	}
+	
+	@Override
+	public String toString() {
+		return TOKEN_COUNTING_MAPPER;
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/KeyValueImpl.java
+package comp533;
+
+public class KeyValueImpl implements KeyValue<String, Integer> {
+	private String key;
+	private int val;
+	
+	public KeyValueImpl(String key, int val) {
+		this.key = key;
+		this.val = val;
+	}
+	@Override
+	public String getKey() {
+		return this.key;
+	}
+	
+	@Override
+	public Integer getValue() {
+		return this.val;
+	}
+	
+	@Override
+	public void setValue(Integer newVal) {
+		int oldVal = val;
+		val = newVal;
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + key + ", " + val + ")";
+	}
+	
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/MapReduceConfigurationImpl.java
+package comp533;
+
+
+import comp533.count.TokenCountingMapper;
+import comp533.factory.MapperFactory;
+import comp533.factory.ReducerFactory;
+import comp533.factory.TokenCountingReducer;
+import comp533.mvc.ModelImpl;
+import comp533.mvc.ControllerImpl;
+import comp533.mvc.ViewImpl;
+import comp533.sum.IntSummingMapper;
+import gradingTools.comp533s21.assignment1.interfaces.MapReduceConfiguration;
+
+
+public class MapReduceConfigurationImpl implements MapReduceConfiguration {
+	public MapReduceConfigurationImpl() {}
+	@Override
+	public Class getStandAloneTokenCounter() {
+		return TokenCounter.class;
+	}
+	
+	@Override
+	public Class getStandAloneIntegerSummer() {
+		return IntegerSummer.class;
+	}
+	
+	@Override
+	public Class getModelClass() {
+		return ModelImpl.class;
+	}
+	
+	@Override
+	public Class getControllerClass() {
+		return ControllerImpl.class;
+	}
+	
+	@Override
+	public Class getViewClass() {
+		return ViewImpl.class;
+	}
+	
+	@Override
+	public Class getMapperFactory() {
+		return MapperFactory.class;
+	}
+	
+	@Override
+	public Class getReducerFactory() {
+		return ReducerFactory.class;
+	}
+	
+	@Override
+	public Class getKeyValueClass() {
+		return KeyValue.class;
+	}
+
+	@Override
+    public Class getTokenCountingMapperClass() {
+    	return TokenCountingMapper.class;
+    }
+
+	@Override
+    public Class getIntSummingMapperClass() {
+    	// extra credit
+    	return IntSummingMapper.class;
+    }
+
+	@Override
+    public Class getReducerClass() {
+    	return TokenCountingReducer.class;
+    }
+
+    // Return instances of the required objects, using the relevant factories
+    // if they return these objects by default
+	@Override
+    public Object getTokenCountingMapper() {
+    	// default object returned by Mapper factory
+    	return MapperFactory.getMapper();
+    }
+
+	@Override
+    public Object getIntSummingMapper() {
+		return IntSummingMapper.getInstance();
+    }
+
+	@Override
+    public Object getReducer() {
+    	// default object returned by Reducer factory   
+    	return ReducerFactory.getReducer();
+    }
+
+	@Override
+	public Class getPartitionerClass() {
+		 return null;
+	 }
+
+	@Override
+	public Class getPartitionerFactory() {
+		 return null;
+	 }
+
+	@Override
+	public Object getPartitioner() {
+		 return null;
+	 }
+
+	@Override
+	public Class getJoinerClass() {
+		 return null;
+	 }
+
+	@Override
+	public Class getBarrierClass() {
+		return null;
+	}
+
+	 @Override
+	 public Class getSlaveClass() {
+		 return null;
+	 }
+	 // return some instance of the Barrier and Joiner classes in the  methods
+	 // below as these are not singletons
+	 @Override
+	 public Object getBarrier(int aNumThreads) {
+		 return null;
+	 }
+
+	@Override
+	public Object getJoiner(int aNumThreads) {
+		return null;
+	}
+
+	    // --------------------A3--------------------------
+
+	    
+	    // The model stored in the server will now have a remote interface to be used 
+	    // by the client to register its proxy. 
+	    // The model class will have to be changed to implement  this interface. 
+	    // If you change the name of this class, make sure you change the getModelClass
+	    // method of the registry to reflect the name change.   
+	@Override
+    public Class getRemoteModelInterface() {
+    	return null;
+    }
+	    
+	    
+	    // The client proxy also has a remote interface for remote callbacks
+	@Override
+	public Class getRemoteClientObjectInterface() {
+    	return null;
+    }
+		
+		// This is the class implementing the interface
+	@Override
+	public Class getRemoteClientObjectClass() {
+		return null;
+	}
+		
+		// For each application (token count, int sum), we now have two main classes,
+		// one for the server and one for each client.
+			
+		// The main class of the server token counter.	
+	@Override
+	public Class getServerTokenCounter() {
+		return null;
+	}
+	
+	@Override
+	// The main class of the server int summer.
+    public Class getServerIntegerSummer() {
+		return null;
+    }
+	    
+    // The main class of both the client token counter and the int summer,
+  	// since the reduction step is the same for both, and the client only
+    // performs reduction
+	@Override
+    public Class getClientTokenCounter() {
+    	return null;
+    }
+	    
+    // A standalone class similar to the two classes in A2 implementing the Facebook 
+    // map reduce algorithm
+	@Override
+	public Class getStandAloneFacebookMapReduce() {
+		return null;
+	}
+
+	// The main class of the server facebook implementation
+	@Override
+	public Class getServerFacebookMapReduce() {
+		return null;
+	}
+	// The main class of the client facebook implementation
+	@Override
+	public Class getRemoteClientFacebookMapReduce() {
+		return null;
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/mvc/ViewImpl.java
+package comp533.mvc;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+
+public class ViewImpl extends AMapReduceTracer implements PropertyChangeListener, View {
+	
+	public ViewImpl() {
+	}
+	
+	@Override
+	public void propertyChange(final PropertyChangeEvent evt) {
+		tracePropertyChange(evt);
+	}
+	
+	@Override
+	public String toString() {
+		return VIEW;
+	}
+}
+//END OF FILE
+//START OF FILE: comp533/RunA2Tests.java
+package comp533;
+import grader.basics.execution.BasicProjectExecution;
+
+import gradingTools.comp533s24.assignment2.S24Assignment2Suite;
+import trace.grader.basics.GraderBasicsTraceUtility;
+
+public class RunA2Tests {
+	public static void main(String[] args) {
+		// if you set this to false, grader steps will not be traced
+		GraderBasicsTraceUtility.setTracerShowInfo(true);	
+		// if you set this to false, all grader steps will be traced,
+		// not just the ones that failed		
+		GraderBasicsTraceUtility.setBufferTracedMessages(true);
+		// Change this number if a test trace gets longer than 600 and is clipped
+		int maxPrintedTraces = 600;
+		GraderBasicsTraceUtility.setMaxPrintedTraces(maxPrintedTraces);
+		// Change this number if all traces together are longer than 2000
+		int maxTraces = 2000;
+		GraderBasicsTraceUtility.setMaxTraces(maxTraces);
+		// Change this number if your process times out prematurely
+		int processTimeOut = 5;
+		BasicProjectExecution.setProcessTimeOut(processTimeOut);
+		// You need to always call such a method
+		S24Assignment2Suite.main(args);
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/Reducer.java
+package comp533.factory;
+
+import java.util.Map;
+
+import comp533.KeyValue;
+
+import java.util.List;
+
+public interface Reducer<K, V> {
+	Map<K, V> reduce(List<KeyValue<K, V>> keyValues); 
+}
+//END OF FILE
+//START OF FILE: comp533/IntegerSummer.java
+package comp533;
+
+import comp533.factory.Mapper;
+import comp533.factory.MapperFactory;
+import comp533.mvc.Controller;
+import comp533.mvc.ControllerImpl;
+import comp533.mvc.Model;
+import comp533.mvc.ModelImpl;
+import comp533.mvc.View;
+import comp533.mvc.ViewImpl;
+import comp533.sum.IntSummingMapper;
+
+public class IntegerSummer {
+	
+public static void main(final String[] args) {
+    final Mapper<String, Integer> mapper = new IntSummingMapper();
+    MapperFactory.setMapper(mapper);
+
+    final Model model = new ModelImpl();
+	final ViewImpl view = new ViewImpl();
+    final Controller controller = new ControllerImpl(model);
+	model.addPropertyChangeListener(view);
+	controller.getUserInput();
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/mvc/Model.java
+package comp533.mvc;
+
+import java.util.Map;
+import java.beans.PropertyChangeListener;
+
+public interface Model {
+	String getInputString();
+	void setInputString(String newVal);
+	Map<String, Integer> getMap();
+	void addPropertyChangeListener(PropertyChangeListener listener);
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/MapperFactory.java
+package comp533.factory;
+
+import comp533.count.TokenCountingMapper;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+public class MapperFactory extends AMapReduceTracer {
+	private static Mapper<String, Integer> mapper = TokenCountingMapper.getInstance();
+	
+	public MapperFactory() {}
+	
+	public static Mapper<String, Integer> getMapper() {
+		return mapper;
+	}
+	
+	public static void setMapper(Mapper<String, Integer> newMapper) {
+		mapper = newMapper;
+		traceSingletonChange(MapperFactory.class, newMapper);
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/TokenCounter.java
+package comp533;
+
+import comp533.mvc.ControllerImpl;
+import comp533.mvc.ModelImpl;
+import comp533.mvc.ViewImpl;
+
+public class TokenCounter {
+	public static void main(String[] args) {
+		ModelImpl model = new ModelImpl();
+		ControllerImpl controller = new ControllerImpl(model);
+		ViewImpl view = new ViewImpl();
+		model.addPropertyChangeListener(view);
+		controller.getUserInput();
+		// connect view as an observable of the model by calling addPropertyChangeListener() in the model, passing it to the view.
+		// instantiate the controller, passing a reference of the model to it
+	}
+
+}
+
+
+//END OF FILE
+//START OF FILE: comp533/factory/Mapper.java
+package comp533.factory;
+
+import java.util.List;
+
+import comp533.KeyValue;
+
+public interface Mapper<K, V> {
+	
+	List<KeyValue<K, V>> map(List<String> strings);
+}
+
+//END OF FILE
+//START OF FILE: comp533/sum/IntSummingMapper.java
+package comp533.sum;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import comp533.KeyValue;
+import comp533.KeyValueImpl;
+import comp533.factory.Mapper;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+public class IntSummingMapper extends AMapReduceTracer implements Mapper<String, Integer> {
+	
+	private static IntSummingMapper instance;
+	
+	public IntSummingMapper() {}
+	
+	public static IntSummingMapper getInstance() {
+		if (instance == null) {
+			instance = new IntSummingMapper();
+		}
+		return instance;
+	}
+	
+	@Override
+	public List<KeyValue<String, Integer>> map(List<String> strings) {
+		List<KeyValue<String, Integer>> keys = new ArrayList<>();
+		Iterator<String> iterator = strings.iterator();
+
+		while (iterator.hasNext()) {
+			KeyValue<String, Integer> pair = new KeyValueImpl("ResultKey", Integer.parseInt(iterator.next()));
+//			System.out.println(pair);
+			keys.add(pair);
+		}
+		traceMap(strings, keys);
+		return keys;
+	}
+	
+	@Override
+	public String toString() {
+		return INT_SUMMING_MAPPER;
+	}
+
+}
+
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+1,Fri Feb 16 14:19:39 EST 2024,3170
+//START OF FILE: comp533/mvc/Controller.java
+=109	+%09void initSlaveThreads();%0A	=2
+//END OF FILE
+//START OF FILE: comp533/mvc/ModelImpl.java
+=146	+Slave;%0Aimport comp533.	=16	-0	=193	+import java.util.ArrayList;%0A	=412	+private int numThreads;%0A%09private List%3CThread%3E threads;%0A%09	=179	+        this.threads = new ArrayList%3CThread%3E();%0A	=626	-0	=50	+%0A    %7D%0A    %0A    @Override%0A    public List%3CThread%3E getThreads() %7B%0A    %09return this.threads;%0A    %7D%0A    %0A    @Override%0A    public int getNumThreads() %7B%0A    %09return this.numThreads;%0A    %7D%0A    %0A    @Override%0A    public void setNumThreads(int num) %7B%0A    %09int oldNum = this.numThreads;%0A    %09propertyChangeSupport.firePropertyChange(%22NumThreads%22, oldNum, num);%0A    %09this.numThreads = num;%0A%0A    %09for (int i = 0; i %3C num; i++) %7B%0A    %09%09Thread slave = new Thread(new Slave(i, this));%0A    %09%09propertyChangeSupport.firePropertyChange(%22Threads%22, null, slave);%0A    %09%09this.threads.add(slave);%0A    %09%7D	=305
+//END OF FILE
+//START OF FILE: comp533/factory/Partitioner.java
+package comp533.factory;
+
+public interface Partitioner<K, V> {
+	public int getPartition(K key, V value, int numberOfPartitions);
+}
+
+//END OF FILE
+//START OF FILE: comp533/mvc/Model.java
+=39	+List;%0Aimport java.util.	=234	-1	+%09int getNumThreads();	=1	+%09void setNumThreads(int numThreads);%0A%09List%3CThread%3E getThreads();%0A%7D
+//END OF FILE
+//START OF FILE: comp533/Slave.java
+=18	+import comp533.mvc.Model;%0Aimport gradingTools.comp533s19.assignment0.AMapReduceTracer;%0A	=28	+AMap	=1	+ed	=1	+ceTracer impleme	=1	+ts SlaveI	=1	+terf	=1	+ce %7B%0A%09private int slaveNum;%0A%09private Model model;%0A%0A%09pu	=2	+ic Slav	=1	+(int	=1	+slaveNumber, Model model) %7B%0A%09%09th	=1	+s.slaveNu	=1	-1	+ = s	=1	+av	=1	+Nu	=1	+b	=1	-1	+r;%0A%09%09	=1	+hi	=1	+.model	=1	+= model;%0A%09%09%0A%09%7D%0A%09public void run() %7B%0A%09%09%0A%09%7D%0A%09%0A%09public synchronized void notify	=5	+()	=3	+%09%09traceNotify();	=1	+%09%09this.notify();%0A%09%7D%0A%0A%09public String toString() %7B%0A%09%09return SLAVE;%0A%09%7D%0A%09%0A%09	=3
+//END OF FILE
+//START OF FILE: comp533/mvc/ControllerImpl.java
+=388	+    %0A    %0A	=267	+);%0A    %7D%0A    %0A    @Override%0A    public void initSlaveThreads() %7B%0A    %09traceThreadPrompt();%0A    %09int numThreads = in.nextInt();%0A    %09model.setNumThreads(numThreads	=190
+//END OF FILE
+//START OF FILE: comp533/factory/PartitionerImpl.java
+package comp533.factory;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+public class PartitionerImpl extends AMapReduceTracer implements Partitioner<String, Integer> {
+	private static PartitionerImpl instance;
+
+	public PartitionerImpl() {}
+	
+	public static PartitionerImpl getInstance() {
+		if (instance == null) {
+			instance = new PartitionerImpl();
+		}
+		return instance;
+	}
+	
+	@Override
+	public int getPartition(String key, Integer value, int numberOfPartitions) {
+		// determines which partition list the keyvalue pair belong
+		int partition;
+		char firstChar = key.charAt(0);
+		if (!Character.isLetter(firstChar)) partition = 0; 
+		else {
+			firstChar = Character.toLowerCase(firstChar);
+			partition = (int)Math.floor((firstChar - 'a' + 1) / (double) numberOfPartitions);
+		}
+		tracePartitionAssigned(key, value, partition, numberOfPartitions);
+		return partition;
+	}
+	
+	public String toString() {
+		return PARTITIONER;
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/TokenCounter.java
+=365	+initSlaveThreads();%0A%09%09controller.	=220
+//END OF FILE
+//START OF FILE: comp533/factory/PartitionerFactory.java
+package comp533.factory;
+
+public class PartitionerFactory {
+	private static Partitioner<String, Integer> partitioner = PartitionerImpl.getInstance();
+	
+	public static Partitioner<String, Integer> getPartitioner() {
+		return partitioner;
+	}
+	
+	public static void setPartitioner(Partitioner<String, Integer> newPartitioner) {
+		partitioner = newPartitioner;
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/MapReduceConfigurationImpl.java
+=122	+PartitionerFactory;%0Aimport comp533.factory.PartitionerImpl;%0Aimport comp533.factory.	=1942	+Partitio	=1	-1	+erImp	=1	+.c	=1	+ass	=68	+Partitio	=1	-2	+erFactory.c	=1	+ass	=62	+Partitio	=1	-3	+erFactory.getPartitioner()	=191	-2	+S	=1	+ave.c	=1	+ass	=5	+%0A	=2171
+//END OF FILE
+//START OF FILE: comp533/SlaveInterface.java
+package comp533;
+
+public interface SlaveInterface extends Runnable {
+	void run();
+}
+
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+2,Fri Feb 16 14:21:15 EST 2024,2
+//START OF FILE: comp533/factory/PartitionerImpl.java
+=765	+(	=26	+)	=156
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+3,Fri Feb 16 14:25:59 EST 2024,76
+//START OF FILE: comp533/factory/PartitionerImpl.java
+=712	-4	=1	+n	=1	+ maxS	=1	-2	+ze	=13	-1	+cei	=1	-3	=25	-1	=27	+); %0A%09%09%09partition = (int)Math.floor((firstChar - 'a' + 1) / ((double) maxSize	=157
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+4,Fri Feb 16 14:26:27 EST 2024,-6
+//START OF FILE: comp533/factory/PartitionerImpl.java
+=742	-9	+'z'	=274
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+5,Fri Feb 16 14:51:38 EST 2024,994
+//START OF FILE: comp533/factory/BarrierImpl.java
+package comp533.factory;
+import gradingTools.comp533s19.assignment0.AMapReduceTracer;
+
+public class BarrierImpl extends AMapReduceTracer implements Barrier {
+	private int barrierCount;
+	private int numThreads;
+	
+	public BarrierImpl(int barrierCount) {
+		this.barrierCount = barrierCount;		
+		this.numThreads = barrierCount;
+		traceBarrierCreated(this, numThreads);
+	}
+	
+	public synchronized void barrier() {
+		if (--barrierCount == 0) {
+			this.notifyAll();
+			barrierCount = numThreads;
+			traceBarrierReleaseAll(this, numThreads, barrierCount);
+		}
+		try {
+			traceBarrierWaitStart(this, numThreads, barrierCount);
+			wait();
+			traceBarrierWaitEnd(this, numThreads, barrierCount);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			System.err.println("Thread Interrupted");
+		}
+	}
+	
+	public String toString() {
+		return BARRIER;
+	}
+}
+
+//END OF FILE
+//START OF FILE: comp533/factory/Barrier.java
+package comp533.factory;
+
+public interface Barrier {
+
+}
+
+//END OF FILE
+//START OF FILE: comp533/MapReduceConfigurationImpl.java
+=84	+BarrierImpl;%0Aimport comp533.factory.	=2399	-2	+BarrierImp	=1	+.c	=1	+ass	=263	-2	+ew BarrierImp	=1	+(aNumThreads)	=1983
+//END OF FILE
+
+//SESSION END
