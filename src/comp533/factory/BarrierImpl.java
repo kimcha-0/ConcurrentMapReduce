@@ -11,19 +11,17 @@ public class BarrierImpl extends AMapReduceTracer implements Barrier {
 		traceBarrierCreated(this, numThreads);
 	}
 	
-	public synchronized void barrier() {
-		if (--barrierCount == 0) {
-			this.notifyAll();
-			barrierCount = numThreads;
-			traceBarrierReleaseAll(this, numThreads, barrierCount);
-		}
-		try {
-			traceBarrierWaitStart(this, numThreads, barrierCount);
-			wait();
-			traceBarrierWaitEnd(this, numThreads, barrierCount);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			System.err.println("Thread Interrupted");
+	public synchronized void barrier() throws InterruptedException {
+		barrierCount--;
+		if (barrierCount > 0) {
+    		traceBarrierWaitStart(this, numThreads, barrierCount);
+    		wait();
+    		traceBarrierWaitEnd(this, numThreads, barrierCount);
+			
+		} else {
+    		traceBarrierReleaseAll(this, numThreads, barrierCount);
+    		notifyAll();
+    		barrierCount = numThreads;
 		}
 	}
 	
