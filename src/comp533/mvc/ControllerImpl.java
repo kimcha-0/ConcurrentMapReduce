@@ -20,6 +20,7 @@ public class ControllerImpl extends AMapReduceTracer implements Controller {
 		traceNumbersPrompt();
 		while (true) {
 			currentString = in.nextLine();
+			currentString = in.nextLine();
 			if (currentString.equals("quit")) break;
 			model.setInputString(currentString);
 			traceNumbersPrompt();

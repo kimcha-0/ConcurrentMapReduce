@@ -120,7 +120,7 @@ public class MapReduceConfigurationImpl implements MapReduceConfiguration {
 
 	 @Override
 	 public Class getSlaveClass() {
-		 return Slave.class;
+		 return SlaveImpl.class;
 	 }
 
 	 // return some instance of the Barrier and Joiner classes in the  methods

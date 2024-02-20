@@ -17,7 +17,7 @@ public class PartitionerImpl extends AMapReduceTracer implements Partitioner<Str
 	public int getPartition(String key, Integer value, int numberOfPartitions) {
 		// determines which partition list the keyvalue pair belong
 		int partition;
-		char firstChar = key.charAt(0);
+		char firstChar = key.length() > 0 ? key.charAt(0) : null;
 		if (!Character.isLetter(firstChar)) partition = 0; 
 		else {
 			firstChar = Character.toLowerCase(firstChar);

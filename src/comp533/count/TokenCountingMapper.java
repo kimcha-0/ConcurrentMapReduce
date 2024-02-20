@@ -21,15 +21,10 @@ public class TokenCountingMapper extends AMapReduceTracer implements Mapper<Stri
 	}
 	
 	@Override
-	public List<KeyValue<String, Integer>> map(List<String> input) {
-		List<KeyValue<String, Integer>> keys = new ArrayList<>();
-		Iterator<String> iterator = input.iterator();
-		
-		while (iterator.hasNext()) {
-			keys.add(new KeyValueImpl(iterator.next(), 1));
-		}
-		traceMap(input, keys);
-		return keys;
+	public KeyValue<String, Integer> map(String input) {
+		KeyValue<String, Integer> kv = new KeyValueImpl(input, 1);
+		traceMap(input, kv);
+		return kv;
 	}
 	
 	@Override

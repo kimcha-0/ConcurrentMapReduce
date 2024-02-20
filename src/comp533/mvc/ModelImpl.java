@@ -2,9 +2,18 @@ package comp533.mvc;
 
 import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
 
 import comp533.KeyValue;
+import comp533.KeyValueImpl;
 import comp533.Slave;
+import comp533.SlaveImpl;
+import comp533.factory.Barrier;
+import comp533.factory.BarrierImpl;
+import comp533.factory.Joiner;
+import comp533.factory.JoinerImpl;
 import comp533.factory.Mapper;
 import comp533.factory.MapperFactory;
 import comp533.factory.Reducer;
@@ -15,6 +24,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ModelImpl extends AMapReduceTracer implements Model {
@@ -22,45 +33,114 @@ public class ModelImpl extends AMapReduceTracer implements Model {
 	// editable
 	private String inputBuffer;
 	// readonly
+	private Map<String, Integer> result;
 	private Map<String, Integer> _map;
 	private Mapper<String, Integer> mapper;
 	private Reducer<String, Integer> reducer;
 	private int numThreads;
+	private List<Slave> slaves;
 	private List<Thread> threads;
+	private BlockingQueue<KeyValue<String, Integer>> keyValueQueue;
+	private List<LinkedList<KeyValue<String, Integer>>> reductionQueueList;
+	private Joiner joiner;
+	private Barrier barrier;
 	
     public ModelImpl() {
         this._map = new HashMap<String, Integer>();
         this.mapper = MapperFactory.getMapper();
         this.reducer = ReducerFactory.getReducer();
-        this.threads = new ArrayList<Thread>();
+        this.slaves = new ArrayList<>();
+        this.threads = new ArrayList<>();
+        this.keyValueQueue = new ArrayBlockingQueue<>(BUFFER_SIZE);
+        this.reductionQueueList = new ArrayList<>();
+        this.joiner = new JoinerImpl(0);
+        this.result = new HashMap<>();
+        
     }
 
+    @Override
+    public BlockingQueue<KeyValue<String, Integer>> getKeyValueQueue() {
+    	return this.keyValueQueue;
+    }
+    
+    @Override
+    public List<LinkedList<KeyValue<String, Integer>>> getReductionQueueList() {
+    	return this.reductionQueueList;
+    }
+    
+    @Override
+    public Joiner getJoiner() {
+    	return this.joiner;
+    }
+    
+    @Override
+    public Barrier getBarrier() {
+    	return this.barrier;
+    }
+    
     @Override
 	public String getInputString() {
 		return inputBuffer;
 	}
+    
 	
     @Override
 	public void setInputString(String newVal) {
+    	// clear and initialize data structures
 		// fire PropertyChangeEvent
+    	for (LinkedList<KeyValue<String, Integer>> q : this.reductionQueueList) {
+    		q.clear();
+    	}
+    	// Possible unblocking of slave threads
+    	for (Slave t : this.slaves) {
+    		t.notifySlave();
+    	}
 		String oldVal = inputBuffer;
 		inputBuffer = newVal;
 		propertyChangeSupport.firePropertyChange("InputString", oldVal, newVal);
-		countTokens();
+		tokenize();
 		propertyChangeSupport.firePropertyChange("Result", null, _map);
 	}
 
-    private void countTokens() {
+    private void tokenize() {
     	_map.clear();
         String[] strings = this.inputBuffer.split(" ");
         List<String> tokens = Arrays.asList(strings);
-        List<KeyValue<String, Integer>> keyValuePairs = mapper.map(tokens);
-        this._map = reducer.reduce(keyValuePairs);
+        Iterator<String> iterator = tokens.iterator();
+        while (iterator.hasNext()) {
+        	try {
+        		loadToken(mapper.map(iterator.next()));
+        	} catch (InterruptedException e) {
+        		
+        	}
+        }
+        for (int i = 0; i < this.numThreads; i++) {
+        	KeyValue<String, Integer> endToken = new KeyValueImpl(null, 0);
+                try {
+                	traceEnqueueRequest(endToken);
+                	this.keyValueQueue.put(endToken);
+                	traceEnqueue(this.keyValueQueue);
+                } catch (InterruptedException e) {
+                	
+                }
+        }
+        try {
+        	this.joiner.join();
+        } catch (InterruptedException e) {
+        	
+        }
+        
+    }
+    
+    private void loadToken(KeyValue<String, Integer> token) throws InterruptedException {
+    	traceEnqueueRequest(token);
+    	this.keyValueQueue.put(token);
+    	traceEnqueue(this.keyValueQueue);
     }
     
     @Override
-    public List<Thread> getThreads() {
-    	return this.threads;
+    public List<Slave> getThreads() {
+    	return this.slaves;
     }
     
     @Override
@@ -73,12 +153,18 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     	int oldNum = this.numThreads;
     	propertyChangeSupport.firePropertyChange("NumThreads", oldNum, num);
     	this.numThreads = num;
+    	this.barrier = new BarrierImpl(numThreads);
 
     	for (int i = 0; i < num; i++) {
-    		Thread slave = new Thread(new Slave(i, this));
-    		propertyChangeSupport.firePropertyChange("Threads", null, slave);
-    		this.threads.add(slave);
+    		Slave slave = new SlaveImpl(i, this);
+    		Thread thread = new Thread(slave, slave.toString() + i);
+    		threads.add(thread);
+    		this.slaves.add(slave);
+    		LinkedList<KeyValue<String, Integer>> reductionQueue = new LinkedList<>();
+    		this.reductionQueueList.add(reductionQueue);
     	}
+   		propertyChangeSupport.firePropertyChange("Threads", null, this.threads);
+   		for (Thread t : threads) t.start();
     }
 
     @Override

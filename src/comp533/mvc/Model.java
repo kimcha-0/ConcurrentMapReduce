@@ -1,7 +1,15 @@
 package comp533.mvc;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+
+import comp533.KeyValue;
+import comp533.Slave;
+import comp533.factory.Barrier;
+import comp533.factory.Joiner;
+
 import java.beans.PropertyChangeListener;
 
 public interface Model {
@@ -11,5 +19,11 @@ public interface Model {
 	void addPropertyChangeListener(PropertyChangeListener listener);
 	int getNumThreads();
 	void setNumThreads(int numThreads);
-	List<Thread> getThreads();
+	List<Slave> getThreads();
+	List<LinkedList<KeyValue<String, Integer>>> getReductionQueueList();
+	BlockingQueue<KeyValue<String, Integer>> getKeyValueQueue();
+	Joiner getJoiner();
+	Barrier getBarrier();
+
+	
 }

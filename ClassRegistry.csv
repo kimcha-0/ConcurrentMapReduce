@@ -16,8 +16,8 @@ comp533.factory.PartitionerFactory,PartitionerFactory
 comp533.factory.TokenCountingReducer,ReducerClass
 comp533.factory.Reducer,ReducerClass
 comp533.factory.ReducerFactory,ReducerFactory
+comp533.SlaveImpl,SlaveClass
 comp533.Slave,SlaveClass
-comp533.SlaveInterface,SlaveClass
 comp533.IntegerSummer,StandAloneIntegerSummer
 comp533.TokenCounter,StandAloneTokenCounter
 comp533.count.TokenCountingMapper,TokenCountingMapperClass
