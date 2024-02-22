@@ -29,9 +29,11 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		try {
 			while (true) {
 				KeyValue<String, Integer> kv = this.model.getKeyValueQueue().take();
+				traceDequeue(kv);
 				if (kv.getKey() == null) {
 					Map<String, Integer> partialMap = reducer.reduce(slaveList);
 					partitionMap(partialMap);
+					slaveWait();
 				} else {
 					this.slaveList.add(kv);
 				}
@@ -40,12 +42,21 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		}
 	}
 	
+	private synchronized void slaveWait() {
+		try {
+			this.wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private void partitionMap(Map<String, Integer> partialMap) {
 		Partitioner<String, Integer> partitioner = PartitionerFactory.getPartitioner();
 		for (var key : partialMap.entrySet()) {
 			int partitionId = partitioner.getPartition(key.getKey(), key.getValue(), model.getNumThreads());
-			synchronized(model.getReductionQueueList().get(partitionId)) {
-				model.getReductionQueueList().get(partitionId).add(new KeyValueImpl(key.getKey(), key.getValue()));
+			List<KeyValue<String, Integer>> currPartition = model.getReductionQueueList().get(partitionId);
+			synchronized (currPartition) {
+				currPartition.add(new KeyValueImpl(key.getKey(), key.getValue()));
 			}
 		}
 		try {
@@ -56,12 +67,16 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		}
 	}
 	
-	private synchronized void reduceThisPartition() {
+	private void reduceThisPartition() {
 		List<KeyValue<String, Integer>> reductionQueue = model.getReductionQueueList().get(slaveNum);
-		Map<String, Integer> reducedPartition = reducer.reduce(reductionQueue);
-		reductionQueue.clear();
-		for (var kv : reducedPartition.entrySet()) {
-			reductionQueue.add(new KeyValueImpl(kv.getKey(), kv.getValue()));
+		Map<String, Integer> reducedPartition;
+		synchronized (reductionQueue) {
+			reducedPartition = reducer.reduce(reductionQueue);
+			reductionQueue.clear();
+			for (var kv : reducedPartition.entrySet()) {
+				reductionQueue.add(new KeyValueImpl(kv.getKey(), kv.getValue()));
+			}
+			this.model.getJoiner().finished();
 		}
 	}
 	

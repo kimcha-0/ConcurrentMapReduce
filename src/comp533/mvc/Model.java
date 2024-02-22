@@ -24,6 +24,7 @@ public interface Model {
 	BlockingQueue<KeyValue<String, Integer>> getKeyValueQueue();
 	Joiner getJoiner();
 	Barrier getBarrier();
+	void terminate();
 
 	
 }

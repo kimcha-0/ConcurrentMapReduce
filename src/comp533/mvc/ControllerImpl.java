@@ -17,13 +17,14 @@ public class ControllerImpl extends AMapReduceTracer implements Controller {
 
     @Override
     public void getUserInput() {
-		traceNumbersPrompt();
 		while (true) {
-			currentString = in.nextLine();
-			currentString = in.nextLine();
-			if (currentString.equals("quit")) break;
-			model.setInputString(currentString);
 			traceNumbersPrompt();
+			currentString = in.nextLine();
+			if (currentString.equals("quit")) {
+				model.terminate();
+				break;
+			}
+			model.setInputString(currentString);
 		}
 		this.in.close();
 		traceQuit();
@@ -33,6 +34,7 @@ public class ControllerImpl extends AMapReduceTracer implements Controller {
     public void initSlaveThreads() {
     	traceThreadPrompt();
     	int numThreads = in.nextInt();
+    	in.nextLine();
     	model.setNumThreads(numThreads);
     }
     

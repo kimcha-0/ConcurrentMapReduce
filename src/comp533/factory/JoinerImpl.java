@@ -13,12 +13,14 @@ public class JoinerImpl extends AMapReduceTracer implements Joiner {
 
 	public synchronized void finished() {
 		count++;
-		notify();
+		if (count == numThreads) {
+			notify();
+		}
 		traceJoinerFinishedTask(this, numThreads, count);
 	}
 	
 	public synchronized void join() throws InterruptedException {
-		while (count < numThreads) {
+		if (count < numThreads) {
 			traceJoinerWaitStart(this, numThreads, count);
 			wait();
 			traceJoinerWaitEnd(this, numThreads, count);
