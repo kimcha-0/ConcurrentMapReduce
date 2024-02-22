@@ -87,19 +87,20 @@ public class ModelImpl extends AMapReduceTracer implements Model {
 	public synchronized void setInputString(String newVal) {
     	// clear and initialize data structures
 		// fire PropertyChangeEvent
-    	this.barrier = new BarrierImpl(numThreads);
-    	this.joiner = new JoinerImpl(numThreads);
-    	for (LinkedList<KeyValue<String, Integer>> q : this.reductionQueueList) {
-    		q.clear();
-    	}
-    	// Possible unblocking of slave threads
-    	for (Slave t : this.slaves) {
-    		t.notifySlave();
-    	}
 		String oldVal = inputBuffer;
 		inputBuffer = newVal;
 		Map<String, Integer> oldResult = result;
 		propertyChangeSupport.firePropertyChange("InputString", oldVal, newVal);
+    	this.keyValueQueue.clear();
+    	for (LinkedList<KeyValue<String, Integer>> q : this.reductionQueueList) {
+    		q.clear();
+    	}
+    	this.barrier = new BarrierImpl(numThreads);
+    	this.joiner = new JoinerImpl(numThreads);
+    	// Possible unblocking of slave threads
+    	for (Slave t : this.slaves) {
+    		t.notifySlave();
+    	}
 		tokenize();
 		propertyChangeSupport.firePropertyChange("Result", null, result);
 	}
@@ -108,14 +109,18 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     	_map.clear();
         String[] strings = this.inputBuffer.split(" ");
         List<String> tokens = Arrays.asList(strings);
-        Iterator<String> iterator = tokens.iterator();
-        while (iterator.hasNext()) {
-        	try {
-        		loadToken(mapper.map(iterator.next()));
-        	} catch (InterruptedException e) {
-        		
-        	}
-        }
+       	List<KeyValue<String, Integer>> mappedTokens = mapper.map(tokens);
+       	Iterator<KeyValue<String, Integer>> iterator = mappedTokens.iterator();
+       	while (iterator.hasNext()) {
+       		KeyValue<String, Integer> kv = iterator.next();
+       		try {
+       			traceEnqueueRequest(kv);
+       			this.keyValueQueue.put(kv);
+       			traceEnqueue(this.keyValueQueue);
+       		} catch (InterruptedException e) {
+       			e.printStackTrace();
+       		}
+       	}
         for (int i = 0; i < this.numThreads; i++) {
         	KeyValue<String, Integer> endToken = new KeyValueImpl(null, 0);
                 try {
@@ -123,7 +128,7 @@ public class ModelImpl extends AMapReduceTracer implements Model {
                 	this.keyValueQueue.put(endToken);
                 	traceEnqueue(this.keyValueQueue);
                 } catch (InterruptedException e) {
-                	
+                	e.printStackTrace();
                 }
         }
         try {
@@ -137,8 +142,12 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     
     private void merge() {
     	Map<String, Integer> temp = result;
-    	for (List<KeyValue<String, Integer>> queue : reductionQueueList) {
-    		for (KeyValue<String, Integer> kv : queue) {
+    	Iterator<LinkedList<KeyValue<String, Integer>>> queueListIterator = this.reductionQueueList.iterator();
+
+    	while (queueListIterator.hasNext()) {
+    		Iterator<KeyValue<String, Integer>> queue = queueListIterator.next().iterator();
+    		while (queue.hasNext()) {
+    			KeyValue<String, Integer> kv = queue.next();
     			result.put(kv.getKey(), kv.getValue());
     		}
     		traceAddedToMap(temp, queue);
@@ -146,9 +155,6 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     }
     
     private void loadToken(KeyValue<String, Integer> token) throws InterruptedException {
-    	traceEnqueueRequest(token);
-    	this.keyValueQueue.put(token);
-    	traceEnqueue(this.keyValueQueue);
     }
     
     @Override
@@ -200,4 +206,3 @@ public class ModelImpl extends AMapReduceTracer implements Model {
         return MODEL;
     }
 }
-

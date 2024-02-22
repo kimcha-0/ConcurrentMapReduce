@@ -6,5 +6,5 @@ import comp533.KeyValue;
 
 public interface Mapper<K, V> {
 	
-	KeyValue<K, V> map(String string);
+	List<KeyValue<K, V>> map(List<String> tokens);
 }

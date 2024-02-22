@@ -20,6 +20,7 @@ public static void main(final String[] args) {
 	final ViewImpl view = new ViewImpl();
     final Controller controller = new ControllerImpl(model);
 	model.addPropertyChangeListener(view);
+	controller.initSlaveThreads();
 	controller.getUserInput();
 	}
 }
