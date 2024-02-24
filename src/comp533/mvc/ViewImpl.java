@@ -5,7 +5,7 @@ import java.beans.PropertyChangeListener;
 import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 
-public class ViewImpl extends AMapReduceTracer implements PropertyChangeListener, View {
+public class ViewImpl extends AMapReduceTracer implements View {
 	
 	public ViewImpl() {
 	}

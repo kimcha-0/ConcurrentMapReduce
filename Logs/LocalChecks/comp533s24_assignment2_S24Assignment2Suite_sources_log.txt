@@ -1267,3 +1267,351 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 //END OF FILE
 
 //SESSION END
+
+//SESSION START
+43,Tue Feb 20 18:37:04 EST 2024,260
+//START OF FILE: comp533/mvc/ModelImpl.java
+=754	+Iterator;%0Aimport java.util.	=1067	-84	=597	-13	=117	+this.barrier = new BarrierImpl(numThreads);%0A    %09this.joiner = new JoinerImpl(numThreads);%0A    %09	=143	-2	=35	-2	=23	-2	=388	-1	+Iterator%3CString%3E iterator = tokens.iterator();%0A        wh	=1	+le (iterator.ha	=1	+Nex	=1	+()) %7B%0A        %09try %7B%0A        %09%09loadToken(mapper.map(iterator.next()));%0A        %09%7D catch (InterruptedException e) %7B%0A        %09%09%0A        %09%7D%0A        %7D%0A        for (int i = 0; i 	=1	+ this.numThreads; i++) %7B%0A        %09	=25	-1	=1	+endTo	=2	+n = new Ke	=6	-15	+I	=1	-1	=1	+l	=1	-4	=1	-1	+ull, 0	=3	+        	=22	+        	=1	-2	+tr	=1	+ceEnqueueRequest(en	=6	+);%0A                %09thi	=1	+.keyValueQueue.put	=1	+endToken);%0A                %09traceEnqueue(this.	=8	-1	+Queue);%0A                %7D c	=1	+tch (InterruptedExcept	=1	+on e) %7B%0A                %09%0A                %7D%0A        %7D%0A        t	=1	+y %7B%0A        %09thi	=1	+.joiner.join();%0A        %09merge(	=46	+        %09%0A	=10	+        %0A	=28	-7	+merg	=1	-2	=1	-9	+) %7B%0A    %09M	=1	-3	+p	=17	-1	=2	-2	=1	-3	+mp	=1	-2	+= 	=1	-2	+e	=1	-7	=1	-1	+l	=1	-13	+;	=11	+List%3C	=25	-19	+%3E	=1	-9	=5	-13	=1	+:	=1	-5	+r	=1	-4	+d	=1	-1	+ction	=5	-3	+Lis	=1	-3	=1	-2	=1	-22	+%7B	=6	-6	=6	-45	=29	-5	+:	=1	-1	+qu	=1	-4	=2	-10	+)	=1	-3	+%7B	=7	-1	+%09	=1	-2	=1	-3	+s	=1	-6	+lt.p	=1	-2	=4	+.getKey(	=1	-5	+,	=1	-2	=1	+v.g	=1	-1	+t	=5	-9	=1	-2	+)	=9	-17	+%7D	=6	-6	=1	-5	=2	-8	+ac	=1	-1	+Add	=1	-3	+dToMap(	=4	-2	+,	=1	-1	+qu	=1	-1	=1	-10	=1	-8	=8	-70	+%7D	=29	+loadToken(KeyValue%3CStrin	=1	+, Int	=1	+ger%3E 	=1	-1	+ok	=1	-5	+n	=38	-9	=1	-18	+ac	=1	-6	+E	=1	-1	+qu	=1	-1	=1	-9	+eR	=1	-4	+qu	=1	-1	+s	=1	-7	=1	+toke	=1	-3	=8	-12	+th	=2	-3	+.k	=7	-28	=5	-6	+.p	=1	-1	=1	-1	+(t	=1	-5	+k	=1	-4	+n	=1	-2	+;	=6	-3	+t	=1	-6	=1	-2	+c	=1	-5	+E	=1	-27	+q	=4	-11	+(	=5	-11	=1	-6	=2	-10	=5	-52	=7	-7	=379	-1	=119	+, slave.toString() + i	=21	-73	=177	+%0A   %09%09propertyChangeSupport.firePropertyChange(%22Threads%22, null, this.threads);%0A   %09%09for (Thread t : threads) t.start();	=305
+//END OF FILE
+//START OF FILE: comp533/factory/Joiner.java
+=94	+%09void finished();%0A	=2
+//END OF FILE
+//START OF FILE: comp533/mvc/ControllerImpl.java
+=524	+currentString = in.nextLine();%0A%09%09%09	=493
+//END OF FILE
+//START OF FILE: comp533/SlaveImpl.java
+=1070	-1	=44	-4	=3	-3	=13	-13	=280	+synchronized(model.getReductionQueueList().get(partitionId)) %7B%0A%09%09%09%09	=102	+%09%7D%0A%09%09	=40	+);%0A%09%09%09traceSplitAfterBarrier(this.slaveNum, model.getReductionQueueList().get(slaveNum)	=68	-3	=373	+%0A%09%09this.model.getJoiner().finished();	=139
+//END OF FILE
+//START OF FILE: comp533/factory/PartitionerImpl.java
+=586	+length() %3E 0 ? key.	=9	+ : null	=424
+//END OF FILE
+//START OF FILE: comp533/count/TokenCountingMapper.java
+=596	-5	=25	-1	=5	-5	=6	-1	=12	-5	=25	-1	=2	-3	+v	=7	-113	=14	-8	=1	-2	+pu	=1	-2	=3	-1	=5	-4	=17	-3	+v	=13	-3	+v	=83
+//END OF FILE
+//START OF FILE: comp533/factory/Mapper.java
+=111	-5	=14	-1	=5	-5	=6	-1	=7	-1	=5
+//END OF FILE
+//START OF FILE: comp533/factory/JoinerImpl.java
+=518	-2	=1	-2	+f	=206
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+44,Tue Feb 20 18:37:42 EST 2024,-13
+//START OF FILE: comp533/factory/JoinerImpl.java
+=342	-13	=371
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+45,Tue Feb 20 18:39:11 EST 2024,26
+//START OF FILE: comp533/factory/JoinerImpl.java
+=342	+synchronized 	=39	+;%0A%09%09count = 0	=332
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+46,Tue Feb 20 18:41:45 EST 2024,21
+//START OF FILE: comp533/factory/JoinerImpl.java
+=386	+if (count == numThreads) %7B%0A%09%09%09	=12	-10	+%7D	=331
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+48,Tue Feb 20 18:49:23 EST 2024,68
+//START OF FILE: comp533/mvc/ModelImpl.java
+=2923	+Map%3CString, Integer%3E oldResult = result;%0A%09%09	=89	+System.exit(0);%0A%09%09	=51	-2	+o	=1	+dResu	=1	+t	=2	-4	+result	=2576
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+49,Tue Feb 20 22:17:15 EST 2024,14
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3055	-18	=51	-6	+n	=2	-1	+l	=8	+);%0A%09%09System.out.println(%22HELLO WORLD%22	=2576
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+50,Tue Feb 20 22:19:46 EST 2024,-37
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3122	-37	=2572
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+52,Tue Feb 20 23:00:13 EST 2024,35
+//START OF FILE: comp533/mvc/ModelImpl.java
+=2445	+synchronized 	=3249
+//END OF FILE
+//START OF FILE: comp533/SlaveImpl.java
+=898	+traceDequeue(kv);%0A%09%09%09%09	=1430
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+53,Tue Feb 20 23:02:44 EST 2024,152
+//START OF FILE: comp533/SlaveImpl.java
+=1048	+%09slaveWait();%0A%09%09%09%09	=85	+%0A%09%09%7D%0A%09%7D%0A%09%0A%09private synchronized void slaveWait() %7B%0A%09%09try %7B%0A%09%09this.wait();%0A%09%09%7D catch (InterruptedException e) %7B%0A%09%09%09e.printStackTrace();	=1217
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+55,Tue Feb 20 23:07:00 EST 2024,-38
+//START OF FILE: comp533/mvc/ControllerImpl.java
+=448	+while (true) %7B%0A%09%09%09	=22	-51	=120	-25	=124	-0	=32	+();%0A    %09in.nextLine	=229
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+58,Tue Feb 20 23:16:19 EST 2024,168
+//START OF FILE: comp533/mvc/ModelImpl.java
+=4602	+void terminate() %7B%0A    %09for (Thread t : threads) %7B%0A    %09%09t.interrupt();%0A    %09%7D%0A    %7D%0A    %0A    @Override%0A    public 	=1105
+//END OF FILE
+//START OF FILE: comp533/mvc/Model.java
+=742	+%09void terminate();%0A	=4
+//END OF FILE
+//START OF FILE: comp533/mvc/ControllerImpl.java
+=559	+%7B%0A%09%09%09%09model.terminate();%0A%09%09%09%09	=6	+%0A%09%09%09%7D	=448
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+60,Thu Feb 22 12:50:50 EST 2024,-19
+//START OF FILE: comp533/mvc/ModelImpl.java
+=5215	+.start();%0A    %09%09thread	=259	-41	=307
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+61,Thu Feb 22 13:57:04 EST 2024,85
+//START OF FILE: comp533/SlaveImpl.java
+=1584	+Li	=1	+t%3CKe	=1	+Value%3CStri	=1	+g, Integer%3E%3E 	=1	-1	+ur	=1	+Partiti	=2	-5	+ = 	=46	-3	+;	=4	-2	+synchr	=1	-8	+niz	=2	+ (c	=1	-1	+rrParti	=4	-10	=1	-6	+ %7B%0A%09%09%09%09currP	=8	-3	=272	-13	=164	+;%0A%09%09synchronized (reductionQueue) %7B%0A%09%09%09reducedPartition	=35	+%09	=28	+%09	=45	+%09	=71	+%09	=2	+%09	=36	+%0A%09%09%7D	=139
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+62,Thu Feb 22 14:22:31 EST 2024,281
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3304	+%09List%3CKeyValue%3CString,	=2	+n	=2	+ge	=1	+%3E%3E m	=1	+ppedTokens = mapper.map(	=2	+kens);%0A       %09Ite	=1	+ator%3CKeyValue	=7	+, Integer%3E	=13	-1	+mappedT	=25	-1	+%09	=36	-1	+%09	=1	+KeyValue%3CS	=2	-1	+ing,	=1	-2	+Integer%3E	=1	+kv	=1	+= iterator.next();%0A	=6	+ 	=2	-2	+tr	=1	-4	+c	=1	+E	=1	-5	+queu	=1	-5	+Request	=1	-1	+kv);%0A       %09%09	=1	-1	=1	-1	+y %7B%0A       %09%09%09	=1	-2	+his	=1	-1	+keyValueQueu	=1	-1	+.pu	=2	-2	+kv	=10	-1	+%09	=43	-1	+%09	=2	+e.printStackTrace();	=8	-1	+%09	=10	+%09%09traceEnqueue(kv);%0A	=1	+      %09	=929	-108	=1238
+//END OF FILE
+//START OF FILE: comp533/SlaveImpl.java
+=1212	+%09	=1375
+//END OF FILE
+//START OF FILE: comp533/count/TokenCountingMapper.java
+=596	+List%3C	=25	+%3E	=5	+List%3C	=6	+%3E	=12	+List%3C	=25	+%3E	=2	-1	+eys	=7	+ArrayList%3C%3E();%0A%09%09Iterator%3CString%3E iterator = input.iterator();%0A%0A%09%09while (iterator.hasNext()) %7B%0A%09%09%09keys.add(new 	=14	+terator.	=1	-2	+ex	=1	+()	=3	+)	=5	+%7D%0A%09%09	=17	-1	+eys	=13	-1	+eys	=83
+//END OF FILE
+//START OF FILE: comp533/factory/Mapper.java
+=111	+List%3C	=14	+%3E	=5	+List%3C	=6	+%3E	=1	-1	=1	-2	+oke	=1	-1	+s	=5
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+64,Thu Feb 22 14:27:31 EST 2024,33
+//START OF FILE: comp533/mvc/ModelImpl.java
+=2580	-5	+k	=1	-9	+yV	=1	-8	=1	-2	=1	-4	=1	-20	+Qu	=1	-5	+u	=1	-6	+.cl	=1	+a	=1	-4	=1	-10	=99	-0	=6	+%0A    %09this.barrier = new BarrierImpl(numThreads);%0A    %09this.joiner = new JoinerImpl(numThreads);	=3153
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+65,Thu Feb 22 14:28:36 EST 2024,-13
+//START OF FILE: comp533/factory/JoinerImpl.java
+=495	-13	=252
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+66,Thu Feb 22 14:29:01 EST 2024,13
+//START OF FILE: comp533/factory/JoinerImpl.java
+=495	+synchronized 	=252
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+67,Thu Feb 22 14:31:26 EST 2024,0
+//START OF FILE: comp533/mvc/ModelImpl.java
+=2570	+%09%09String oldVal = inputBuffer;%0A%09%09inputBuffer = newVal;%0A%09%09Map%3CString, Integer%3E oldResult = result;%0A%09%09propertyChangeSupport.firePropertyChange(%22InputString%22, oldVal, newVal);%0A	=341	-173	=2870
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+69,Thu Feb 22 14:37:40 EST 2024,3
+//START OF FILE: comp533/factory/JoinerImpl.java
+=552	+wh	=1	-1	+le	=206
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+71,Thu Feb 22 14:43:58 EST 2024,201
+//START OF FILE: comp533/mvc/ModelImpl.java
+=4400	-1	+Iterat	=2	-2	+%3CLinked	=31	+%3E	=6	+ListIterator	=1	-1	+=	=1	+this.	=18	+.iterator();%0A%0A    %09while (queueListIterator.hasNext()	=10	-1	+Iterator%3CKeyValue%3CString, Integer%3E%3E queue = queueListIterat	=2	+.next().iterator();%0A    %09%09while	=2	+queue.hasNext()) %7B%0A    %09%09%09	=29	-1	+=	=6	+.next(	=1	-2	+;	=1437
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+72,Thu Feb 22 14:49:20 EST 2024,32
+//START OF FILE: comp533/IntegerSummer.java
+=677	+initSlaveThreads();%0A%09controller.	=21
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+73,Thu Feb 22 15:08:56 EST 2024,18
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3590	+y %7B%0A       %09%09%09tr	=30	+%09	=3	-1	+his.ke	=1	-2	+ValueQueue.put(kv);	=12	+raceEnqueue(t	=17	-7	=88	-27	=2377
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+74,Fri Feb 23 13:20:59 EST 2024,-93
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3944	-4	=6	-4	=44	-4	=59	-4	=35	-4	=47	-4	=13	+e.printStackTrace();	=1	-4	=657	-101	=1236	-2
+//END OF FILE
+//START OF FILE: comp533/SlaveImpl.java
+=1485	+synchronized (model.getReductionQueueList()) %7B%0A%09%09%09%09	=97	+%09	=98	-34	=874
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+75,Fri Feb 23 13:31:17 EST 2024,-2
+//START OF FILE: comp533/mvc/ModelImpl.java
+=1357	-6	=51	+	=651	-6	=705	+	=10	-6	=1627	-6	=1637
+//END OF FILE
+//START OF FILE: comp533/mvc/Model.java
+=41	-29	=502	-6	=187
+//END OF FILE
+//START OF FILE: comp533/SlaveImpl.java
+=65	+nkedList;%0Aimport java.util.Li	=1377	-18	+Lis	=1	+%3CL	=1	+st%3CKeyV	=2	-4	+u	=1	-1	+%3CS	=2	-7	+ing,	=1	-7	+I	=1	-2	+tege	=1	-4	+%3E%3E%3E qu	=1	-1	+ueList	=1	-1	+= 	=29	+;%0A%09%09%0A%09%09for (var key : partialMap.entrySet()	=4	-1	=103	-1	=48	-19	+q	=8	-2	=19	+%09%09%09synchronized (currPartition) %7B%0A	=162	-19	+q	=8	-2	=682
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+76,Fri Feb 23 13:34:44 EST 2024,53
+//START OF FILE: comp533/SlaveImpl.java
+=854	+traceDequeueRequest(this.model.getKeyValueQueue());%0A%09%09%09%09	=697	-3	=1109
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+77,Fri Feb 23 13:35:56 EST 2024,16
+//START OF FILE: comp533/SlaveImpl.java
+=1299	+raceWait();%0A%09%09%09t	=1417
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+81,Fri Feb 23 13:50:31 EST 2024,42
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3922	-3	+%09synchronized	=1	+(	=1	-1	+his.ke	=1	+ValueQueue)	=11	+%09%09try	=1	+%7B%0A	=3	+     %09%09	=40	-4	+%09%09	=35	-2	=8	-2	+%09%09	=43	-4	+%09%09	=43	-4	+%09%09	=30	+%09%09%7D%0A	=4	+    %09	=1875
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+83,Fri Feb 23 17:53:27 EST 2024,-3
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3134	-4	+0	=2942
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+84,Fri Feb 23 17:56:26 EST 2024,13
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3907	-1	+(Integer) null	=2169
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+85,Fri Feb 23 17:59:03 EST 2024,-13
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3907	-14	+0	=2169
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+86,Fri Feb 23 19:41:46 EST 2024,12
+//START OF FILE: comp533/mvc/ModelImpl.java
+=5360	+this.	=3	+Threads	=714
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+87,Fri Feb 23 19:43:28 EST 2024,-4
+//START OF FILE: comp533/factory/JoinerImpl.java
+=552	-2	=1	-2	+f	=87	+%7D%0A%09	=45	-4	=70
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+88,Fri Feb 23 19:44:50 EST 2024,27
+//START OF FILE: comp533/factory/JoinerImpl.java
+=632	+hile (count %3C numThreads) w	=127
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+89,Fri Feb 23 19:50:08 EST 2024,8
+//START OF FILE: comp533/mvc/ModelImpl.java
+=3134	-1	+oldResult	=2954
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+90,Fri Feb 23 20:18:20 EST 2024,80
+//START OF FILE: comp533/mvc/ModelImpl.java
+=2764	+%09%09this.result.clear();%0A	=3333
+//END OF FILE
+//START OF FILE: comp533/mvc/View.java
+=22	+import java.beans.PropertyChangeListener;%0A%0A	=21	+ extends PropertyChangeListener	=6
+//END OF FILE
+//START OF FILE: comp533/SlaveImpl.java
+=1103	+slaveList.clear();%0A%09%09%09%09%09	=1629
+//END OF FILE
+//START OF FILE: comp533/mvc/ViewImpl.java
+=224	-24	=198
+//END OF FILE
+//START OF FILE: comp533/IntegerSummer.java
+=483	-11	+%09	=4	+lImp	=28	-48	=10	+Impl	=38	+);%0A%09ViewImpl view = new ViewImpl(	=108
+//END OF FILE
+
+//SESSION END
+
+//SESSION START
+91,Fri Feb 23 20:19:20 EST 2024,1
+//START OF FILE: comp533/RunA2Tests.java
+=934	-1	+10	=143
+//END OF FILE
+
+//SESSION END

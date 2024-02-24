@@ -1,6 +1,7 @@
 package comp533;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -28,10 +29,12 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 	public void run() {
 		try {
 			while (true) {
+				traceDequeueRequest(this.model.getKeyValueQueue());
 				KeyValue<String, Integer> kv = this.model.getKeyValueQueue().take();
 				traceDequeue(kv);
 				if (kv.getKey() == null) {
 					Map<String, Integer> partialMap = reducer.reduce(slaveList);
+					slaveList.clear();
 					partitionMap(partialMap);
 					slaveWait();
 				} else {
@@ -44,6 +47,7 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 	
 	private synchronized void slaveWait() {
 		try {
+			traceWait();
 			this.wait();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -52,16 +56,17 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 	
 	private void partitionMap(Map<String, Integer> partialMap) {
 		Partitioner<String, Integer> partitioner = PartitionerFactory.getPartitioner();
+		List<List<KeyValue<String, Integer>>> queueList = model.getReductionQueueList();
 		for (var key : partialMap.entrySet()) {
 			int partitionId = partitioner.getPartition(key.getKey(), key.getValue(), model.getNumThreads());
-			List<KeyValue<String, Integer>> currPartition = model.getReductionQueueList().get(partitionId);
+			List<KeyValue<String, Integer>> currPartition = queueList.get(partitionId);
 			synchronized (currPartition) {
 				currPartition.add(new KeyValueImpl(key.getKey(), key.getValue()));
 			}
 		}
 		try {
 			model.getBarrier().barrier();
-			traceSplitAfterBarrier(this.slaveNum, model.getReductionQueueList().get(slaveNum));
+			traceSplitAfterBarrier(this.slaveNum, queueList.get(slaveNum));
 			reduceThisPartition();
 		} catch (InterruptedException e) {
 		}

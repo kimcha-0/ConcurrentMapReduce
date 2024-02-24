@@ -20,11 +20,11 @@ public class JoinerImpl extends AMapReduceTracer implements Joiner {
 	}
 	
 	public synchronized void join() throws InterruptedException {
-		while (count < numThreads) {
+		if (count < numThreads) {
 			traceJoinerWaitStart(this, numThreads, count);
-			wait();
-			traceJoinerWaitEnd(this, numThreads, count);
+			while (count < numThreads) wait();
 		}
+		traceJoinerWaitEnd(this, numThreads, count);
 		count = 0;
 	}
 	

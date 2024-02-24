@@ -1,6 +1,5 @@
 package comp533.mvc;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -20,7 +19,7 @@ public interface Model {
 	int getNumThreads();
 	void setNumThreads(int numThreads);
 	List<Slave> getThreads();
-	List<LinkedList<KeyValue<String, Integer>>> getReductionQueueList();
+	List<List<KeyValue<String, Integer>>> getReductionQueueList();
 	BlockingQueue<KeyValue<String, Integer>> getKeyValueQueue();
 	Joiner getJoiner();
 	Barrier getBarrier();

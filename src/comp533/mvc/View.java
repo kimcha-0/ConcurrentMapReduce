@@ -1,5 +1,7 @@
 package comp533.mvc;
 
-public interface View {
+import java.beans.PropertyChangeListener;
+
+public interface View extends PropertyChangeListener {
 
 }
