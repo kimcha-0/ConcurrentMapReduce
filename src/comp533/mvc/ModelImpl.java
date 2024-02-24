@@ -123,7 +123,7 @@ public class ModelImpl extends AMapReduceTracer implements Model {
        		}
        	}
         for (int i = 0; i < this.numThreads; i++) {
-        	KeyValue<String, Integer> endToken = new KeyValueImpl(null, 0);
+        	KeyValue<String, Integer> endToken = new KeyValueImpl(null, null);
         	synchronized (this.keyValueQueue) {
         		try {
         			traceEnqueueRequest(endToken);
@@ -148,12 +148,13 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     	Iterator<List<KeyValue<String, Integer>>> queueListIterator = this.reductionQueueList.iterator();
 
     	while (queueListIterator.hasNext()) {
-    		Iterator<KeyValue<String, Integer>> queue = queueListIterator.next().iterator();
+    		List<KeyValue<String, Integer>> thisQueue = queueListIterator.next();
+    		Iterator<KeyValue<String, Integer>> queue = thisQueue.iterator();
     		while (queue.hasNext()) {
     			KeyValue<String, Integer> kv = queue.next();
     			result.put(kv.getKey(), kv.getValue());
     		}
-    		traceAddedToMap(temp, queue);
+    		if (queue != null) traceAddedToMap(temp, thisQueue);
     	}
     }
     

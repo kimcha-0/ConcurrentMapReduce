@@ -2,9 +2,9 @@ package comp533;
 
 public class KeyValueImpl implements KeyValue<String, Integer> {
 	private String key;
-	private int val;
+	private Integer val;
 	
-	public KeyValueImpl(String key, int val) {
+	public KeyValueImpl(String key, Integer val) {
 		this.key = key;
 		this.val = val;
 	}
@@ -20,7 +20,6 @@ public class KeyValueImpl implements KeyValue<String, Integer> {
 	
 	@Override
 	public void setValue(Integer newVal) {
-		int oldVal = val;
 		val = newVal;
 	}
 	
