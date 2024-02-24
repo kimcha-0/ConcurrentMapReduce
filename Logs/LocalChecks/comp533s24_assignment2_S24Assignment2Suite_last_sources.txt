@@ -347,7 +347,7 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     	traceJoinerCreated(joiner, numThreads);
     	// Possible unblocking of slave threads
     	for (int i = 0; i < slaves.size(); i++) {
-    		slaves.get(i).notify();
+    		slaves.get(i).notifySlave();
     	}
 		tokenize();
 		propertyChangeSupport.firePropertyChange("Result", oldResult, result);
