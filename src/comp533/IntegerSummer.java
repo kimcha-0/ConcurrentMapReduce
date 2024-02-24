@@ -15,9 +15,9 @@ public class IntegerSummer {
 public static void main(final String[] args) {
     final Mapper<String, Integer> mapper = new IntSummingMapper();
     MapperFactory.setMapper(mapper);
-	ModelImpl model = new ModelImpl();
-	ControllerImpl controller = new ControllerImpl(model);
-	ViewImpl view = new ViewImpl();
+	Model model = new ModelImpl();
+	Controller controller = new ControllerImpl(model);
+	View view = new ViewImpl();
 	model.addPropertyChangeListener(view);
 	controller.initSlaveThreads();
 	controller.getUserInput();

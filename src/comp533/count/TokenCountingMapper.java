@@ -9,7 +9,7 @@ import comp533.factory.Mapper;
 import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 public class TokenCountingMapper extends AMapReduceTracer implements Mapper<String, Integer> {
-	private static TokenCountingMapper instance;
+	private static Mapper<String, Integer> instance;
 	
 	public TokenCountingMapper() {}
 	

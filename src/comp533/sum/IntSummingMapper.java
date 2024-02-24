@@ -11,11 +11,11 @@ import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 public class IntSummingMapper extends AMapReduceTracer implements Mapper<String, Integer> {
 	
-	private static IntSummingMapper instance;
+	private static Mapper<String, Integer> instance;
 	
 	public IntSummingMapper() {}
 	
-	public static IntSummingMapper getInstance() {
+	public static Mapper<String, Integer> getInstance() {
 		if (instance == null) {
 			instance = new IntSummingMapper();
 		}

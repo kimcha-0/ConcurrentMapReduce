@@ -26,19 +26,21 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		this.reducer = ReducerFactory.getReducer();
 		
 	}
+
+	@Override
 	public void run() {
 		try {
 			while (true) {
 				traceDequeueRequest(this.model.getKeyValueQueue());
-				KeyValue<String, Integer> kv = this.model.getKeyValueQueue().take();
-				traceDequeue(kv);
-				if (kv.getKey() == null) {
+				KeyValue<String, Integer> keyValue = this.model.getKeyValueQueue().take();
+				traceDequeue(keyValue);
+				if (keyValue.getKey() == null) {
 					Map<String, Integer> partialMap = reducer.reduce(slaveList);
 					slaveList.clear();
 					partitionMap(partialMap);
 					slaveWait();
 				} else {
-					this.slaveList.add(kv);
+					this.slaveList.add(keyValue);
 				}
 			}
 		} catch (InterruptedException e) {
@@ -59,9 +61,9 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		List<List<KeyValue<String, Integer>>> queueList = model.getReductionQueueList();
 		for (var key : partialMap.entrySet()) {
 			int partitionId = partitioner.getPartition(key.getKey(), key.getValue(), model.getNumThreads());
-			List<KeyValue<String, Integer>> currPartition = queueList.get(partitionId);
-			synchronized (currPartition) {
-				currPartition.add(new KeyValueImpl(key.getKey(), key.getValue()));
+			List<KeyValue<String, Integer>> currentPartition = queueList.get(partitionId);
+			synchronized (currentPartition) {
+				currentPartition.add(new KeyValueImpl(key.getKey(), key.getValue()));
 			}
 		}
 		try {
@@ -78,18 +80,20 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		synchronized (reductionQueue) {
 			reducedPartition = reducer.reduce(reductionQueue);
 			reductionQueue.clear();
-			for (var kv : reducedPartition.entrySet()) {
-				reductionQueue.add(new KeyValueImpl(kv.getKey(), kv.getValue()));
+			for (var keyValue : reducedPartition.entrySet()) {
+				reductionQueue.add(new KeyValueImpl(keyValue.getKey(), keyValue.getValue()));
 			}
 			this.model.getJoiner().finished();
 		}
 	}
 	
+	@Override
 	public synchronized void notifySlave() {
 		traceNotify();
 		this.notify();
 	}
 
+	@Override
 	public String toString() {
 		return SLAVE;
 	}

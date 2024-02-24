@@ -2,11 +2,11 @@ package comp533.factory;
 import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 public class PartitionerImpl extends AMapReduceTracer implements Partitioner<String, Integer> {
-	private static PartitionerImpl instance;
+	private static Partitioner<String, Integer> instance;
 
 	public PartitionerImpl() {}
 	
-	public static PartitionerImpl getInstance() {
+	public static Partitioner<String, Integer> getInstance() {
 		if (instance == null) {
 			instance = new PartitionerImpl();
 		}
@@ -28,6 +28,7 @@ public class PartitionerImpl extends AMapReduceTracer implements Partitioner<Str
 		return partition;
 	}
 	
+	@Override
 	public String toString() {
 		return PARTITIONER;
 	}

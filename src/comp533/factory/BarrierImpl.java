@@ -8,9 +8,9 @@ public class BarrierImpl extends AMapReduceTracer implements Barrier {
 	public BarrierImpl(int barrierCount) {
 		this.barrierCount = barrierCount;		
 		this.numThreads = barrierCount;
-		traceBarrierCreated(this, numThreads);
 	}
 	
+	@Override
 	public synchronized void barrier() throws InterruptedException {
 		barrierCount--;
 		if (barrierCount > 0) {
@@ -25,6 +25,7 @@ public class BarrierImpl extends AMapReduceTracer implements Barrier {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return BARRIER;
 	}

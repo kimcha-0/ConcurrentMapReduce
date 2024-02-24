@@ -8,17 +8,19 @@ public class JoinerImpl extends AMapReduceTracer implements Joiner {
 	public JoinerImpl(int numThreads) {
 		this.numThreads = numThreads;
 		this.count = 0;
-		traceJoinerCreated(this, numThreads);
 	}
 
+	@Override
 	public synchronized void finished() {
+		traceJoinerFinishedTask(this, numThreads, count);
 		count++;
 		if (count == numThreads) {
 			notify();
+			traceJoinerRelease(this, numThreads, count);
 		}
-		traceJoinerFinishedTask(this, numThreads, count);
 	}
 	
+	@Override
 	public synchronized void join() throws InterruptedException {
 		if (count < numThreads) {
 			traceJoinerWaitStart(this, numThreads, count);
@@ -28,6 +30,7 @@ public class JoinerImpl extends AMapReduceTracer implements Joiner {
 		count = 0;
 	}
 	
+	@Override
 	public String toString() {
 		return JOINER;
 	}

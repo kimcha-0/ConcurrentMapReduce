@@ -16,9 +16,9 @@ public class IntegerSummer {
 public static void main(final String[] args) {
     final Mapper<String, Integer> mapper = new IntSummingMapper();
     MapperFactory.setMapper(mapper);
-	ModelImpl model = new ModelImpl();
-	ControllerImpl controller = new ControllerImpl(model);
-	ViewImpl view = new ViewImpl();
+	Model model = new ModelImpl();
+	Controller controller = new ControllerImpl(model);
+	View view = new ViewImpl();
 	model.addPropertyChangeListener(view);
 	controller.initSlaveThreads();
 	controller.getUserInput();
@@ -338,14 +338,16 @@ public class ModelImpl extends AMapReduceTracer implements Model {
 		propertyChangeSupport.firePropertyChange("InputString", oldVal, newVal);
     	this.keyValueQueue.clear();
 		this.result.clear();
-    	for (List<KeyValue<String, Integer>> q : this.reductionQueueList) {
-    		q.clear();
+    	for (List<KeyValue<String, Integer>> queue : this.reductionQueueList) {
+    		queue.clear();
     	}
     	this.barrier = new BarrierImpl(numThreads);
+    	traceBarrierCreated(barrier, numThreads);
     	this.joiner = new JoinerImpl(numThreads);
+    	traceJoinerCreated(joiner, numThreads);
     	// Possible unblocking of slave threads
-    	for (Slave t : this.slaves) {
-    		t.notifySlave();
+    	for (int i = 0; i < slaves.size(); i++) {
+    		slaves.get(i).notify();
     	}
 		tokenize();
 		propertyChangeSupport.firePropertyChange("Result", oldResult, result);
@@ -358,10 +360,10 @@ public class ModelImpl extends AMapReduceTracer implements Model {
        	List<KeyValue<String, Integer>> mappedTokens = mapper.map(tokens);
        	Iterator<KeyValue<String, Integer>> iterator = mappedTokens.iterator();
        	while (iterator.hasNext()) {
-       		KeyValue<String, Integer> kv = iterator.next();
+       		KeyValue<String, Integer> keyValue = iterator.next();
        		try {
-       			traceEnqueueRequest(kv);
-       			this.keyValueQueue.put(kv);
+       			traceEnqueueRequest(keyValue);
+       			this.keyValueQueue.put(keyValue);
        			traceEnqueue(this.keyValueQueue);
        		} catch (InterruptedException e) {
        			e.printStackTrace();
@@ -396,8 +398,8 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     		List<KeyValue<String, Integer>> thisQueue = queueListIterator.next();
     		Iterator<KeyValue<String, Integer>> queue = thisQueue.iterator();
     		while (queue.hasNext()) {
-    			KeyValue<String, Integer> kv = queue.next();
-    			result.put(kv.getKey(), kv.getValue());
+    			KeyValue<String, Integer> keyValue = queue.next();
+    			result.put(keyValue.getKey(), keyValue.getValue());
     		}
     		if (queue != null) traceAddedToMap(temp, thisQueue);
     	}
@@ -405,8 +407,8 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     
     @Override
     public void terminate() {
-    	for (Thread t : threads) {
-    		t.interrupt();
+    	for (Thread threads : threads) {
+    		threads.interrupt();
     	}
     }
     
@@ -427,7 +429,8 @@ public class ModelImpl extends AMapReduceTracer implements Model {
     	this.numThreads = num;
     	for (int i = 0; i < this.numThreads; i++) {
     		Slave slave = new SlaveImpl(i, this);
-    		Thread thread = new Thread(slave, slave.toString() + i);
+    		Thread thread = new Thread(slave);
+    		thread.setName(slave.toString() + i);
     		thread.start();
     		threads.add(thread);
     		this.slaves.add(slave);
@@ -593,7 +596,7 @@ import comp533.factory.Mapper;
 import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 public class TokenCountingMapper extends AMapReduceTracer implements Mapper<String, Integer> {
-	private static TokenCountingMapper instance;
+	private static Mapper<String, Integer> instance;
 	
 	public TokenCountingMapper() {}
 	
@@ -637,11 +640,11 @@ import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 public class IntSummingMapper extends AMapReduceTracer implements Mapper<String, Integer> {
 	
-	private static IntSummingMapper instance;
+	private static Mapper<String, Integer> instance;
 	
 	public IntSummingMapper() {}
 	
-	public static IntSummingMapper getInstance() {
+	public static Mapper<String, Integer> getInstance() {
 		if (instance == null) {
 			instance = new IntSummingMapper();
 		}
@@ -699,19 +702,21 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		this.reducer = ReducerFactory.getReducer();
 		
 	}
+
+	@Override
 	public void run() {
 		try {
 			while (true) {
 				traceDequeueRequest(this.model.getKeyValueQueue());
-				KeyValue<String, Integer> kv = this.model.getKeyValueQueue().take();
-				traceDequeue(kv);
-				if (kv.getKey() == null) {
+				KeyValue<String, Integer> keyValue = this.model.getKeyValueQueue().take();
+				traceDequeue(keyValue);
+				if (keyValue.getKey() == null) {
 					Map<String, Integer> partialMap = reducer.reduce(slaveList);
 					slaveList.clear();
 					partitionMap(partialMap);
 					slaveWait();
 				} else {
-					this.slaveList.add(kv);
+					this.slaveList.add(keyValue);
 				}
 			}
 		} catch (InterruptedException e) {
@@ -732,9 +737,9 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		List<List<KeyValue<String, Integer>>> queueList = model.getReductionQueueList();
 		for (var key : partialMap.entrySet()) {
 			int partitionId = partitioner.getPartition(key.getKey(), key.getValue(), model.getNumThreads());
-			List<KeyValue<String, Integer>> currPartition = queueList.get(partitionId);
-			synchronized (currPartition) {
-				currPartition.add(new KeyValueImpl(key.getKey(), key.getValue()));
+			List<KeyValue<String, Integer>> currentPartition = queueList.get(partitionId);
+			synchronized (currentPartition) {
+				currentPartition.add(new KeyValueImpl(key.getKey(), key.getValue()));
 			}
 		}
 		try {
@@ -751,18 +756,20 @@ public class SlaveImpl extends AMapReduceTracer implements Slave {
 		synchronized (reductionQueue) {
 			reducedPartition = reducer.reduce(reductionQueue);
 			reductionQueue.clear();
-			for (var kv : reducedPartition.entrySet()) {
-				reductionQueue.add(new KeyValueImpl(kv.getKey(), kv.getValue()));
+			for (var keyValue : reducedPartition.entrySet()) {
+				reductionQueue.add(new KeyValueImpl(keyValue.getKey(), keyValue.getValue()));
 			}
 			this.model.getJoiner().finished();
 		}
 	}
 	
+	@Override
 	public synchronized void notifySlave() {
 		traceNotify();
 		this.notify();
 	}
 
+	@Override
 	public String toString() {
 		return SLAVE;
 	}
@@ -833,17 +840,19 @@ public class JoinerImpl extends AMapReduceTracer implements Joiner {
 	public JoinerImpl(int numThreads) {
 		this.numThreads = numThreads;
 		this.count = 0;
-		traceJoinerCreated(this, numThreads);
 	}
 
+	@Override
 	public synchronized void finished() {
+		traceJoinerFinishedTask(this, numThreads, count);
 		count++;
 		if (count == numThreads) {
 			notify();
+			traceJoinerRelease(this, numThreads, count);
 		}
-		traceJoinerFinishedTask(this, numThreads, count);
 	}
 	
+	@Override
 	public synchronized void join() throws InterruptedException {
 		if (count < numThreads) {
 			traceJoinerWaitStart(this, numThreads, count);
@@ -853,6 +862,7 @@ public class JoinerImpl extends AMapReduceTracer implements Joiner {
 		count = 0;
 	}
 	
+	@Override
 	public String toString() {
 		return JOINER;
 	}
@@ -897,21 +907,20 @@ public interface Reducer<K, V> {
 //START OF FILE: comp533/factory/Barrier.java
 package comp533.factory;
 
-public interface Barrier { void barrier() throws InterruptedException;
-
+public interface Barrier {
+	void barrier() throws InterruptedException;
 }
-
 //END OF FILE
 //START OF FILE: comp533/factory/PartitionerImpl.java
 package comp533.factory;
 import gradingTools.comp533s19.assignment0.AMapReduceTracer;
 
 public class PartitionerImpl extends AMapReduceTracer implements Partitioner<String, Integer> {
-	private static PartitionerImpl instance;
+	private static Partitioner<String, Integer> instance;
 
 	public PartitionerImpl() {}
 	
-	public static PartitionerImpl getInstance() {
+	public static Partitioner<String, Integer> getInstance() {
 		if (instance == null) {
 			instance = new PartitionerImpl();
 		}
@@ -933,6 +942,7 @@ public class PartitionerImpl extends AMapReduceTracer implements Partitioner<Str
 		return partition;
 	}
 	
+	@Override
 	public String toString() {
 		return PARTITIONER;
 	}
@@ -1038,9 +1048,9 @@ public class BarrierImpl extends AMapReduceTracer implements Barrier {
 	public BarrierImpl(int barrierCount) {
 		this.barrierCount = barrierCount;		
 		this.numThreads = barrierCount;
-		traceBarrierCreated(this, numThreads);
 	}
 	
+	@Override
 	public synchronized void barrier() throws InterruptedException {
 		barrierCount--;
 		if (barrierCount > 0) {
@@ -1055,6 +1065,7 @@ public class BarrierImpl extends AMapReduceTracer implements Barrier {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		return BARRIER;
 	}
@@ -1067,12 +1078,15 @@ package comp533;
 import comp533.mvc.ControllerImpl;
 import comp533.mvc.ModelImpl;
 import comp533.mvc.ViewImpl;
+import comp533.mvc.Controller;
+import comp533.mvc.Model;
+import comp533.mvc.View;
 
 public class TokenCounter {
 	public static void main(String[] args) {
-		ModelImpl model = new ModelImpl();
-		ControllerImpl controller = new ControllerImpl(model);
-		ViewImpl view = new ViewImpl();
+		Model model = new ModelImpl();
+		Controller controller = new ControllerImpl(model);
+		View view = new ViewImpl();
 		model.addPropertyChangeListener(view);
 		controller.initSlaveThreads();
 		controller.getUserInput();
