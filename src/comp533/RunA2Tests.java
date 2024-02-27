@@ -18,7 +18,7 @@ public class RunA2Tests {
 		int maxTraces = 2000;
 		GraderBasicsTraceUtility.setMaxTraces(maxTraces);
 		// Change this number if your process times out prematurely
-		int processTimeOut = 10;
+		int processTimeOut = 5;
 		BasicProjectExecution.setProcessTimeOut(processTimeOut);
 		// You need to always call such a method
 		S24Assignment2Suite.main(args);

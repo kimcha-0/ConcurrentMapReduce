@@ -9,10 +9,15 @@ local.properties
 .settings/
 .loadpath
 .recommenders
+.DS_Store
 
 Logs/
 # External tool builders
 .externalToolBuilders/
+*.csv
+*.txt
+.classpath
+.project
 
 # Locally stored "Eclipse launch configurations"
 *.launch
