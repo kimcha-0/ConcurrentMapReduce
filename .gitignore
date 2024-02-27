@@ -16,6 +16,7 @@ Logs/
 .externalToolBuilders/
 *.csv
 *.txt
+*.text
 .classpath
 .project
 
